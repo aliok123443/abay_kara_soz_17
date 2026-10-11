@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Абай Құнанбаев — Он жетінші қара сөз</title>
+  <style>
+    :root {
+      --bg-color: #f7f5f0;
+      --card-bg: #ffffff;
+      --text-main: #23272a;
+      --text-muted: #5e666d;
+      --primary: #1f2937;
+      --accent: #2c3e50;
+      --accent-gold: #c59b27;
+      --accent-red: #c0392b;
+      --border-color: #e5e0d8;
+      --btn-bg: #2d3748;
+      --btn-text: #ffffff;
+      --btn-hover: #1a202c;
+      --dot-color: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      position: fixed;
+    }
+
+    /* Фоновый узор в точечку как в оригинальной презентации */
+    .pattern-dots {
+      position: absolute;
+      width: 90px;
+      height: 70px;
+      background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
+      background-size: 8px 8px;
+      opacity: 0.65;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .dots-top-right { top: 18px; right: 24px; }
+    .dots-bottom-left { bottom: 75px; left: 24px; }
+
+    /* Контейнер приложения */
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Верхняя панель (прогресс) */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      height: 48px;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(247, 245, 240, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+
+    .brand-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .slide-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .dot-step {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d1d5db;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .dot-step.active {
+      background: var(--accent);
+      transform: scale(1.3);
+      width: 18px;
+      border-radius: 4px;
+    }
+
+    /* Область слайдов */
+    .slider-viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .slides-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-height: 640px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(30px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      overflow-y: auto;
+      user-select: text;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+      z-index: 5;
+    }
+
+    .slide.prev {
+      transform: translateX(-30px);
+    }
+
+    /* Типографика слайдов */
+    .slide-eyebrow {
+      font-size: 15px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .slide-title {
+      font-size: clamp(22px, 3.5vw, 36px);
+      font-weight: 800;
+      line-height: 1.15;
+      color: #1a202c;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .slide-subtitle {
+      font-size: clamp(14px, 2vw, 19px);
+      font-weight: 500;
+      color: #4a5568;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    /* Карточки контента */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      width: 100%;
+    }
+
+    @media (min-width: 680px) {
+      .cards-grid.two-cols {
+        grid-template-columns: 1fr 1fr;
+      }
+      .cards-grid.three-cols {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    .info-card {
+      background: #fdfdfd;
+      border: 1px solid #e2e8f0;
+      border-left: 5px solid #4a5568;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .info-card.kairat {
+      border-left-color: #d97706;
+      background: #fffdfa;
+    }
+    .info-card.akyl {
+      border-left-color: #2563eb;
+      background: #f8faff;
+    }
+    .info-card.zhurek {
+      border-left-color: #dc2626;
+      background: #fff8f8;
+    }
+    .info-card.gylym {
+      border-left-color: #059669;
+      background: #f6fdfa;
+    }
+
+    .card-header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .card-text {
+      font-size: clamp(13px, 1.8vw, 15px);
+      line-height: 1.5;
+      color: #334155;
+    }
+
+    .card-list {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 6px;
+    }
+
+    .card-list li {
+      position: relative;
+      padding-left: 16px;
+      margin-bottom: 8px;
+      font-size: clamp(13px, 1.8vw, 15px);
+      line-height: 1.45;
+      color: #334155;
+    }
+
+    .card-list li::before {
+      content: "•";
+      position: absolute;
+      left: 2px;
+      color: #64748b;
+      font-weight: bold;
+    }
+
+    .warning-box {
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: rgba(239, 68, 68, 0.08);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #b91c1c;
+      line-height: 1.35;
+    }
+
+    /* Первый слайд титульный */
+    .title-slide-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+      position: relative;
+      z-index: 2;
+    }
+
+    .slide-badge {
+      display: inline-block;
+      align-self: flex-start;
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .ornament-line {
+      width: 60px;
+      height: 4px;
+      background: #1f2937;
+      margin: 12px 0 18px 0;
+      border-radius: 2px;
+    }
+
+    /* Финальный слайд */
+    .quote-box {
+      background: #f8fafc;
+      border-left: 6px solid #1e293b;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .quote-text {
+      font-size: clamp(16px, 2.5vw, 24px);
+      font-weight: 800;
+      line-height: 1.35;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: -0.3px;
+    }
+
+    .final-thanks {
+      margin-top: 18px;
+      font-size: clamp(15px, 2vw, 20px);
+      font-weight: 700;
+      color: #1e293b;
+      text-align: center;
+    }
+
+    /* Нижняя панель управления (эргономичная для телефонов и ПК) */
+    .bottom-bar {
+      height: 64px;
+      padding: 8px 16px;
+      padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+      background: rgba(247, 245, 240, 0.98);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 44px;
+      min-width: 95px;
+      padding: 0 14px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      transition: background 0.15s, transform 0.1s, opacity 0.15s;
+    }
+
+    .nav-btn:active {
+      transform: scale(0.97);
+    }
+
+    .nav-btn:disabled {
+      background: #cbd5e1;
+      color: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Кнопки переворота и счетчика посередине */
+    .center-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .counter-badge {
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      background: #e2e8f0;
+      padding: 6px 10px;
+      border-radius: 8px;
+      min-width: 44px;
+      text-align: center;
+    }
+
+    .icon-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      height: 44px;
+      padding: 0 12px;
+      background: #ffffff;
+      color: #1e293b;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .icon-action-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .icon-action-btn:active {
+      transform: scale(0.96);
+    }
+
+    .icon-svg {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
+
+    /* Специфика для мобильных телефонов */
+    @media (max-width: 480px) {
+      .header-bar {
+        padding: 8px 12px;
+        height: 42px;
+      }
+      .brand-title {
+        font-size: 11px;
+      }
+      .slider-viewport {
+        padding: 8px;
+      }
+      .slide {
+        padding: 16px 14px;
+        border-radius: 12px;
+      }
+      .bottom-bar {
+        padding: 6px 10px;
+        height: 60px;
+      }
+      .nav-btn {
+        min-width: 80px;
+        padding: 0 10px;
+        font-size: 13px;
+        height: 42px;
+      }
+      .btn-text-label {
+        display: none;
+      }
+      .nav-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .icon-action-btn {
+        height: 42px;
+        padding: 0 10px;
+        font-size: 12px;
+      }
+      .action-btn-text {
+        display: none;
+      }
+      .counter-badge {
+        font-size: 12px;
+        padding: 5px 8px;
+      }
+    }
+
+    /* Режим принудительного ландшафта через CSS (если браузер на мобильном не поддерживает orientation.lock) */
+    body.virtual-landscape {
+      transform: rotate(90deg);
+      transform-origin: bottom left;
+      position: absolute;
+      top: -100vw;
+      left: 0;
+      height: 100vw;
+      width: 100vh;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <!-- Декоративные точечные паттерны -->
+    <div class="pattern-dots dots-top-right"></div>
+    <div class="pattern-dots dots-bottom-left"></div>
+
+    <!-- Верхний статус-бар -->
+    <header class="header-bar">
+      <div class="brand-title">Абай • 17-қара сөз</div>
+      <div class="slide-dots" id="dotsContainer">
+        <!-- Генерируются скриптом -->
+      </div>
+    </header>
+
+    <!-- Основная область слайдов -->
+    <main class="slider-viewport" id="sliderViewport">
+      <div class="slides-wrapper">
+
+        <!-- СЛАЙД 1 -->
+        <section class="slide active" data-index="0">
+          <div class="title-slide-container">
+            <span class="slide-badge">Қазақ әдебиеті • Философия</span>
+            <div class="slide-eyebrow">Абай Құнанбаев</div>
+            <h1 class="slide-title">ОН ЖЕТІНШІ ҚАРА СӨЗ</h1>
+            <div class="ornament-line"></div>
+            <p class="slide-subtitle">
+              <strong>Қайрат, Ақыл және Жүрек</strong><br>
+              Адам бойындағы үш қасиеттің айтысы мен Ғылымның төрелігі.
+            </p>
+          </div>
+        </section>
+
+        <!-- СЛАЙД 2 -->
+        <section class="slide" data-index="1">
+          <span class="slide-badge">Негізі</span>
+          <h2 class="slide-title">ҚАРА СӨЗДІҢ НЕГІЗГІ ИДЕЯСЫ</h2>
+          <p class="slide-subtitle">Үш қуаттың таласы мен Ғылымның төрелігі</p>
+
+          <div class="cards-grid two-cols">
+            <div class="info-card">
+              <div class="card-header-badge">⚖️ Айтыстың себебі:</div>
+              <p class="card-text">
+                Қайрат, Ақыл және Жүрек үшеуі өнерлерін айтысып, таласып, қайсысы артық әрі биік екенін білу үшін <strong>Ғылымға</strong> жүгінеді.
+              </p>
+            </div>
+
+            <div class="info-card gylym">
+              <div class="card-header-badge">🏛️ Ғылымның шешімі:</div>
+              <p class="card-text">
+                Ғылым үшеуінің де сөзін тыңдап, олардың қоғам мен адам үшін артықшылықтары мен кемшіліктерін саралап, әділ төрелік береді.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- СЛАЙД 3 -->
+        <section class="slide" data-index="2">
+          <span class="slide-badge">Дәйектер</span>
+          <h2 class="slide-title">ҮШ КЕЙІПКЕРДІҢ УӘЖІ</h2>
+          <p class="slide-subtitle">Әр қасиеттің өз болмысы туралы айтқаны</p>
+
+          <div class="cards-grid three-cols">
+            <div class="info-card kairat">
+              <div class="card-header-badge" style="color: #b45309;">⚡ Қайрат</div>
+              <p class="card-text">
+                «Күнәдан, нәпсі шайтанның азғыруынан бойды таза сақтайтын, ерік-жігерді қайрайтын — <strong>Қайрат</strong>.»
+              </p>
+            </div>
+
+            <div class="info-card akyl">
+              <div class="card-header-badge" style="color: #1d4ed8;">💡 Ақыл</div>
+              <p class="card-text">
+                «Жақсының да, жаманның да сүйенгені мен іздегені, жол табатыны — <strong>Ақыл</strong>.»
+              </p>
+            </div>
+
+            <div class="info-card zhurek">
+              <div class="card-header-badge" style="color: #b91c1c;">❤️ Жүрек</div>
+              <p class="card-text">
+                «Әділет, нысап, ұят, рақым, мейірбандылық сияқты асыл сезімдер тек <strong>Жүректен</strong> шығады.»
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- СЛАЙД 4 -->
+        <section class="slide" data-index="3">
+          <span class="slide-badge">Сараптама</span>
+          <h2 class="slide-title">ҒЫЛЫМНЫҢ ТАЛДАУЫ</h2>
+          <p class="slide-subtitle">Қайрат пен Ақылға берілген шынайы баға</p>
+
+          <div class="cards-grid two-cols">
+            <div class="info-card kairat">
+              <div class="card-header-badge" style="color: #b45309;">⚡ Қайратқа айтылған сөз</div>
+              <ul class="card-list">
+                <li>Пайдаң да мол, бірақ залалың да мол.</li>
+                <li>Жақсылықты да, жамандықты да берік ұстап кетесің.</li>
+              </ul>
+              <div class="warning-box">
+                ⚠️ Ескерту: Егер бір жамандыққа бет бұрсаң, сені тоқтату қиын!
+              </div>
+            </div>
+
+            <div class="info-card akyl">
+              <div class="card-header-badge" style="color: #1d4ed8;">💡 Ақылға айтылған сөз</div>
+              <ul class="card-list">
+                <li>Жақсы мен жаманның екеуі де саған сүйенеді.</li>
+                <li>Екеуінің де іздегенін тауып бересің.</li>
+              </ul>
+              <div class="warning-box">
+                ⚠️ Ескерту: Амал, айла мен қулық та сенен шығады!
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- СЛАЙД 5 -->
+        <section class="slide" data-index="4">
+          <span class="slide-badge">Шешім</span>
+          <h2 class="slide-title">ҒЫЛЫМНЫҢ ШЕШІМІ: ЖҮРЕКТІ БАСТЫҚ ЕТУ</h2>
+          <p class="slide-subtitle">Неге Жүрек билеуші болуы керек?</p>
+
+          <div class="cards-grid" style="gap: 10px;">
+            <div class="info-card akyl" style="border-left-width: 4px;">
+              <p class="card-text">
+                <strong>💡 Ақыл:</strong> Жүрек қалаған жақсылыққа қуанады, жаманшылықты үйден қуып шығарады.
+              </p>
+            </div>
+
+            <div class="info-card kairat" style="border-left-width: 4px;">
+              <p class="card-text">
+                <strong>⚡ Қайрат:</strong> Орынсыз жерге қол жұмсатпайды, орынды іске күшін аямайды.
+              </p>
+            </div>
+
+            <div class="info-card zhurek" style="border-left-width: 6px; background: #fff5f5;">
+              <p class="card-text" style="font-size: 16px; font-weight: 700; color: #991b1b;">
+                👑 Басшылық: «Үшеуің басыңды қос, бәрін де Жүрекке билет!»
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- СЛАЙД 6 -->
+        <section class="slide" data-index="5">
+          <span class="slide-badge">Қорытынды</span>
+          <div class="quote-box">
+            <p class="quote-text">
+              «Ақыл, қайрат, жүрек — үшеуі бірігіп, жүрекке бағынғанда ғана адам «Толық адам» деңгейіне жетеді.»
+            </p>
+          </div>
+
+          <p class="slide-subtitle" style="text-align: center; margin-bottom: 10px;">
+            Абайдың 17-қара сөзі бізді білімді, қайратты әрі ең бастысы <strong>мейірімді Жүректі</strong> болуға шақырады.
+          </p>
+
+          <div class="final-thanks">
+            — Назар қойып тыңдағандарыңызға рахмет! —
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Төменгі басқару тақтасы -->
+    <footer class="bottom-bar">
+      <!-- Сол жақта: Алдыңғы бет (Previous) -->
+      <button class="nav-btn" id="prevBtn" aria-label="Алдыңғы бет">
+        <svg class="icon-svg" viewBox="0 0 24 24">
+          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+        <span class="btn-text-label">Алдыңғы</span>
+      </button>
+
+      <!-- Ортасында: Толық экран / экран бұру және Бет нөмірі -->
+      <div class="center-controls">
+        <button class="icon-action-btn" id="rotateFullscreenBtn" title="Толық экран / Экранды бұру" aria-label="Толық экран / Экранды бұру">
+          <svg class="icon-svg" viewBox="0 0 24 24">
+            <!-- Иконка полного экрана / поворота -->
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+          </svg>
+          <span class="action-btn-text">Экран</span>
+        </button>
+
+        <div class="counter-badge" id="slideCounter">1 / 6</div>
+      </div>
+
+      <!-- Оң жақта: Келесі бет (Next) -->
+      <button class="nav-btn" id="nextBtn" aria-label="Келесі бет">
+        <span class="btn-text-label">Келесі</span>
+        <svg class="icon-svg" viewBox="0 0 24 24">
+          <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+        </svg>
+      </button>
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      const slides = document.querySelectorAll('.slide');
+      const totalSlides = slides.length;
+      let currentIndex = 0;
+
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const slideCounter = document.getElementById('slideCounter');
+      const dotsContainer = document.getElementById('dotsContainer');
+      const rotateFullscreenBtn = document.getElementById('rotateFullscreenBtn');
+      const viewport = document.getElementById('sliderViewport');
+
+      // Генерация индикаторных точек сверху
+      slides.forEach((_, idx) => {
+        const dot = document.createElement('div');
+        dot.className = 'dot-step' + (idx === 0 ? ' active' : '');
+        dot.setAttribute('data-target', idx);
+        dot.addEventListener('click', () => goToSlide(idx));
+        dotsContainer.appendChild(dot);
+      });
+
+      const dots = document.querySelectorAll('.dot-step');
+
+      function updateSlide(newIndex) {
+        if (newIndex < 0 || newIndex >= totalSlides) return;
+
+        slides.forEach((slide, idx) => {
+          slide.classList.remove('active', 'prev');
+          if (idx === newIndex) {
+            slide.classList.add('active');
+          } else if (idx < newIndex) {
+            slide.classList.add('prev');
+          }
+        });
+
+        currentIndex = newIndex;
+
+        // Обновление счетчика и кнопок
+        slideCounter.textContent = `${currentIndex + 1} / ${totalSlides}`;
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === totalSlides - 1;
+
+        // Обновление точек
+        dots.forEach((dot, idx) => {
+          dot.classList.toggle('active', idx === currentIndex);
+        });
+      }
+
+      function goToSlide(index) {
+        updateSlide(index);
+      }
+
+      function prevSlide() {
+        if (currentIndex > 0) {
+          updateSlide(currentIndex - 1);
+        }
+      }
+
+      function nextSlide() {
+        if (currentIndex < totalSlides - 1) {
+          updateSlide(currentIndex + 1);
+        }
+      }
+
+      // Обработчики кнопок снизу
+      prevBtn.addEventListener('click', prevSlide);
+      nextBtn.addEventListener('click', nextSlide);
+
+      // Клавиатура (для ПК)
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'Space') {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          prevSlide();
+        }
+      });
+
+      // Свайпы для мобильных телефонов (Touch gestures)
+      let touchStartX = 0;
+      let touchStartY = 0;
+
+      viewport.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+
+      viewport.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+
+        // Горизонтальный свайп, если X доминирует над Y
+        if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+          if (diffX < 0) {
+            nextSlide();
+          } else {
+            prevSlide();
+          }
+        }
+      }, { passive: true });
+
+      // Полноэкранный режим и поворот экрана
+      rotateFullscreenBtn.addEventListener('click', async () => {
+        try {
+          if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            const root = document.documentElement;
+            if (root.requestFullscreen) {
+              await root.requestFullscreen();
+            } else if (root.webkitRequestFullscreen) {
+              await root.webkitRequestFullscreen();
+            }
+
+            // Попытка заблокировать поворот в горизонтальный режим (landscape)
+            if (screen.orientation && screen.orientation.lock) {
+              try {
+                await screen.orientation.lock('landscape');
+              } catch (_) {
+                // Если браузер не поддерживает или заблокировал orientation lock
+              }
+            }
+          } else {
+            // Выход из полного экрана
+            if (document.exitFullscreen) {
+              await document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+              await document.webkitExitFullscreen();
+            }
+            if (screen.orientation && screen.orientation.unlock) {
+              screen.orientation.unlock();
+            }
+          }
+        } catch (err) {
+          // Запасной fallback: виртуальный поворот
+          document.body.classList.toggle('virtual-landscape');
+        }
+      });
+
+      // Инициализация первого слайда
+      updateSlide(0);
+    })();
+  </script>
+</body>
+</html>
